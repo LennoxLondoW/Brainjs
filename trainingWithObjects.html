@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="css/style.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js" integrity="sha512-MI1PUoQHsMVp8aw45rX19K4o8XlVfPB6jaGlHrj0zUv1ZDnq307ji47GWS1MfUfQDNua43c8vK1iCcuOjMXZBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    </head>
+    <body>
+    
+
+        <script>
+            const colors = [
+                {red: 0, green: 0.2, blue: 0.4},
+                {red: 0, green: 0.4, blue: 0.6},
+                {red: 0.2, green: 0.8, blue: 0.8},
+                {red: 0, green: 1, blue: 1},
+                {red: 0.8, green: 1, blue: 1},
+                {red: 1, green: 1, blue: 1},
+                {red: 1, green: 0.8, blue: 0.8},
+                {red: 1, green: 0.6, blue: 0.6},
+                {red: 1, green: 0.4, blue: 0.4},
+                {red: 1, green: 0.31, blue: 0.31},
+                {red: 0.8},
+                {red: 0.6, green: 0.2, blue: 0.2},
+            ]
+
+            const brightness = [
+                {dark: 0.8},
+                {neutral: 0.8},
+                {light: 0.7},
+                {light: 0.8},
+                {light: 0.9},
+                {light: 1},
+                {light: 0.8},
+                {neutral: 0.8, light: 0.5},
+                {dark: 0.8, neutral: 0.5},
+                {dark: 0.8, neutral: 0.3},
+                {dark: 0.85},
+                {dark: 0.9},
+            ]
+
+            const trainingData = [];
+            for(let i in brightness){
+                trainingData.push({
+                    output: colors[i],
+                    input: brightness[i],
+            })
+            }
+
+            // strat a new instance of brain js 
+            const net = new brain.NeuralNetwork({
+                hiddenLayers: [3]
+            });
+
+
+            const stats = net.train(trainingData);
+            const output = net.run({
+                dark: 0.9
+            })
+
+            console.log(output)
+        </script>
+    </body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="css/style.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js" integrity="sha512-MI1PUoQHsMVp8aw45rX19K4o8XlVfPB6jaGlHrj0zUv1ZDnq307ji47GWS1MfUfQDNua43c8vK1iCcuOjMXZBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    </head>
+    <body>
+    
+
+        <script>
+            // strat a new instance of brain js 
+            const net = new brain.NeuralNetwork({
+                hiddenLayers: [3, 3]
+            });
+
+            // 2 input neurons
+            // one hidden layer with 3 neurons
+            // output layer with one neruron
+            // hiddenLayers: [3] => 1 hiden layer with 3 neurons
+            // hiddenLayers: [3, 3] => 2 hiden layer with 3 neurons each
+
+
+
+
+            const trainingData = [
+                {input : [0,0], output: [0]},
+                {input : [0,1], output: [1]},
+                {input : [1,0], output: [1]},
+                {input : [1,1], output: [0]},
+            ];
+
+            net.train(trainingData,{
+                log : (error)=> console.log(error),
+                logPeroid: 100
+            });
+
+            console.log(net.run([0,1]))
+        </script>
+    </body>
+</html>

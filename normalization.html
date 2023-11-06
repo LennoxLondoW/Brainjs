@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js"
+        integrity="sha512-MI1PUoQHsMVp8aw45rX19K4o8XlVfPB6jaGlHrj0zUv1ZDnq307ji47GWS1MfUfQDNua43c8vK1iCcuOjMXZBA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+
+
+    <script>
+
+        function scaleDown() { // normalize
+            // (value - lowest)/ (highest - lowest) rule 
+            return {
+                open: step.open / multiplier,
+                high: step.high / multiplier,
+                low: step.low / multiplier,
+                close: step.close / multiplier
+            }
+        }
+
+        function scaleUp() { // denomalize
+        //    (value * (highest - lowest)) + lowest 
+            return { 
+                open: step.open * multiplier,
+                high: step.high * multiplier,
+                low: step.low * multiplier,
+                close: step.close * multiplier
+            }
+        }
+    </script>
+</body>
+
+</html>
