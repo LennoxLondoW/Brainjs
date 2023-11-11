@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="css/style.css" rel="stylesheet" />
+
+    <style>
+      form {
+        width: 98%;
+        max-width: 600px;
+        margin: auto;
+      }
+
+      form :is(textarea, input) {
+        width: 100%;
+        outline: none;
+        padding: 8px;
+        border-radius: 5px;
+        border: solid, 25px rgba(0, 0, 0, 0.5);
+        margin: 15px auto;
+      }
+
+      form button {
+        border: none;
+        outline: none;
+        border-radius: 5px;
+        padding: 10px;
+        background: #09c;
+        color: #fff;
+      }
+      article {
+        background-color: rgba(0, 0, 0, 0.2);
+        margin: 20px auto;
+        padding: 10px;
+        width: 96%;
+        border-radius: 10px;
+      }
+      article:nth-child(even) {
+        margin-left: 4%;
+      }
+      article:nth-child(even)::before {
+        content: "Assistant:  ";
+      }
+
+      article:nth-child(odd)::before {
+        content: "User:  ";
+      }
+    </style>
+  </head>
+
+  <body>
+    <form action="?" method="post" class="assistant">
+      <div class="ai_result"></div>
+      <textarea name="prompt" id="prompt" cols="30" rows="10"></textarea>
+      <button type="submit">Query</button>
+    </form>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+      integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      $("body").on("submit", ".assistant", function (event) {
+        event.preventDefault();
+        let current_form = $(this);
+        let submit = current_form.find('[type="submit"]');
+
+        if (submit.val() === "Thinking...") return;
+        let textarea = $("#prompt");
+
+        submit.html("Thinking...");
+        const promptText = textarea.val();
+        textarea.val("");
+        $(".ai_result").append(
+          `<article data-role='user' class='chat_message'>${promptText}</article>`
+        );
+
+        chat(promptText)
+          .then((data) => {
+            // Handle the API response data here
+            try {
+              submit.html("Query");
+              let text = (
+                data["choices"] === undefined
+                  ? data["error"] === undefined
+                    ? data
+                    : data["error"]["message"]
+                  : data["choices"][0]["message"]["content"]
+              ).replaceAll("\n", "<br>");
+
+              $(".ai_result").append(
+                `<article data-role='assistant' class='chat_message'>${text}</article>`
+              );
+            } catch (error) {
+              console.log(error);
+            }
+          })
+          .catch((error) => {
+            // Handle any errors that occur during the request
+            submit.val("Generate");
+            reportStatus("Something is not right! Please try again.", "error");
+            console.error("Error:", error);
+          });
+
+        return false;
+      });
+
+      const AI_ASSISTANT_KEY =
+        "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";
+
+      function chat(prompt) {
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", `Bearer ${AI_ASSISTANT_KEY}`);
+        const messages = [];
+
+        $(".chat_message").each(function () {
+          messages.push({
+            role: $(this).attr("data-role"),
+            content: $(this).text(),
+          });
+        });
+
+        const data = {
+          model: "gpt-3.5-turbo",
+          messages: messages,
+          temperature: 0.2,
+        };
+
+        return fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            return data;
+          })
+          .catch((error) => {
+            // Handle any errors that occur during the request
+            console.error("Error:", error);
+          });
+      }
+    </script>
+  </body>
+</html>

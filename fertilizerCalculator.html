@@ -1,115 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <title></title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="css/style.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js"
-        integrity="sha512-MI1PUoQHsMVp8aw45rX19K4o8XlVfPB6jaGlHrj0zUv1ZDnq307ji47GWS1MfUfQDNua43c8vK1iCcuOjMXZBA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0-beta.1/brain-browser.min.js"
+      integrity="sha512-MI1PUoQHsMVp8aw45rX19K4o8XlVfPB6jaGlHrj0zUv1ZDnq307ji47GWS1MfUfQDNua43c8vK1iCcuOjMXZBA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <style>
+      form {
+        width: 98%;
+        max-width: 600px;
+        margin: auto;
+      }
 
-</head>
+      form :is(textarea, input) {
+        width: 100%;
+        outline: none;
+        padding: 15px;
+        border-radius: 5px;
+        border: solid 0.25px rgba(0, 0, 0, 0.5);
+        margin: 15px auto;
+      }
 
-<body>
+      form button {
+        border: none;
+        outline: none;
+        border-radius: 5px;
+        padding: 10px;
+        background: #09c;
+        color: #fff;
+      }
+      label {
+        display: block;
+        font-weight: bold;
+        text-transform: capitalize;
+      }
+    </style>
+  </head>
 
+  <body>
+    <form action="?" method="post" class="assistant">
+      <label for="nitrogen">Nitrogen</label>
+      <input
+        type="number"
+        min="0"
+        max="1000"
+        value="0"
+        name="nitrogen"
+        id="nitrogen"
+      />
+      <label for="phosphorous">Phosphorous</label>
+      <input
+        type="number"
+        min="0"
+        max="1000"
+        value="0"
+        name="phosphorous"
+        id="phosphorous"
+      />
+      <label for="potassium">Potassium</label>
+      <input
+        type="number"
+        min="0"
+        max="1000"
+        value="0"
+        name="potassium"
+        id="potassium"
+      />
+      <div id="result"></div>
+      <button type="submit">Query</button>
 
+      <div class="ai_result"></div>
+    </form>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+      integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <script src="fertilizerTraining.js"></script>
     <script>
+      class FertilizerCalculator {
+        constructor(data) {
+          this.Temparature_low = data[0]["Temparature"];
+          this.Humidity_low = data[0]["Humidity"];
+          this.Moisture_low = data[0]["Moisture"];
+          this.Nitrogen_low = data[0]["Nitrogen"];
+          this.Potassium_low = data[0]["Potassium"];
+          this.Phosphorous_low = data[0]["Phosphorous"];
 
-        class FertilizerCalculator {
-            constructor(data) {
-                const [test_data, training_data] = this.sliceArrayInHalf(this.limitToOne(data));
-                this.training_data = training_data
-                this.test_data = test_data
-                this.net = new brain.NeuralNetwork({ hiddenLayers: [3,5] });
-                this.trainNeuralNet()
-                // console.log(training_data)
-                // console.log(test_data)
-                this.testNeuralNet()
-            }
+          this.Temparature_high = data[0]["Temparature"];
+          this.Humidity_high = data[0]["Humidity"];
+          this.Moisture_high = data[0]["Moisture"];
+          this.Nitrogen_high = data[0]["Nitrogen"];
+          this.Potassium_high = data[0]["Potassium"];
+          this.Phosphorous_high = data[0]["Phosphorous"];
 
-            devideBy100(val) {
-                return Number((Number(val) / 100).toFixed(2));
-            }
+          this.setLowHigh(data);
 
-            limitToOne(data) {
-                for (let i = 0; i < data.length; i++) {
-                    data[i]['Temparature'] = this.devideBy100(data[i]['Temparature']);
-                    data[i]['Humidity'] = this.devideBy100(data[i]['Humidity']);
-                    data[i]['Moisture'] = this.devideBy100(data[i]['Moisture']);
-                    data[i]['Nitrogen'] = this.devideBy100(data[i]['Nitrogen']);
-                    data[i]['Potassium'] = this.devideBy100(data[i]['Potassium']);
-                    data[i]['Phosphorous'] = this.devideBy100(data[i]['Phosphorous']);
-                    data[i][data[i]['Soil Type']] = 1;
-                    data[i][data[i]['Crop Type']] = 1;
-                    data[i]['output'] = data[i]['Fertilizer Name'];
-                    delete data[i]['Soil Type']
-                    delete data[i]['Crop Type']
-                    delete data[i]['Fertilizer Name']
-
-                }
-                return data;
-            }
-
-            sliceArrayInHalf(arr) {
-                const middle = Math.floor(arr.length / 2);
-                const firstHalf = arr.slice(0, middle);
-                const secondHalf = arr.slice(middle);
-                return [firstHalf, secondHalf];
-            }
-
-            // training the neural net 
-            trainNeuralNet() {
-                let trainingData = [];
-                for (let row in this.training_data) {
-                    let output = this.training_data[row]['output']
-                    delete this.training_data[row]['output']
-                    trainingData.push({
-                        input: this.training_data[row],
-                        output: { [output]: 1 }
-                    })
-                }
-                let result = this.net.train(trainingData);
-                // console.log(result)
-            }
-
-            testNeuralNet() {
-                let trainingData = [];
-                let correct = 0;
-                let total = this.test_data.length;
-                for (let row in this.test_data) {
-                    let output = this.test_data[row]['output']
-                    delete this.test_data[row]['output']
-
-                    let result = this.formatNetResult(this.net.run(this.test_data[row]));
-                    if(result == output){
-                        correct ++;
-                    } else{
-                        // console.log(result, output)
-                    }
-                }
-                console.log((correct/total * 100).toFixed(0) + " %")
-            }
-
-             formatNetResult(data){
-                let highestValue = 0;
-                let result = "";
-                for(let name in data){
-                    if(data[name] > highestValue){
-                        highestValue = data[name];
-                        result = name
-                    }
-                }
-
-                return result;
-            }
+          const [training_data, test_data] = this.sliceArrayInHalf(
+            this.scaleDown(data)
+          );
+          this.training_data = training_data;
+          this.test_data = test_data;
+          this.net = new brain.NeuralNetwork({ hiddenLayers: [20] });
+          this.trainNeuralNet();
+          this.testNeuralNet();
         }
 
-        new FertilizerCalculator(JSON.parse(data))
+        devide(val, high, low) {
+          return (Number(val) - low) / (high - low);
+        }
 
+        setLowHigh(data) {
+          for (let i in data) {
+            let row = data[i];
+            this.Temparature_low = Math.min(
+              this.Temparature_low,
+              Number(row["Temparature"])
+            );
+            this.Humidity_low = Math.min(
+              this.Humidity_low,
+              Number(row["Humidity"])
+            );
+            this.Moisture_low = Math.min(
+              this.Moisture_low,
+              Number(row["Moisture"])
+            );
+            this.Nitrogen_low = Math.min(
+              this.Nitrogen_low,
+              Number(row["Nitrogen"])
+            );
+            this.Potassium_low = Math.min(
+              this.Potassium_low,
+              Number(row["Potassium"])
+            );
+            this.Phosphorous_low = Math.min(
+              this.Phosphorous_low,
+              Number(row["Phosphorous"])
+            );
+
+            this.Temparature_high = Math.max(
+              this.Temparature_high,
+              Number(row["Temparature"])
+            );
+            this.Humidity_high = Math.max(
+              this.Humidity_high,
+              Number(row["Humidity"])
+            );
+            this.Moisture_high = Math.max(
+              this.Moisture_high,
+              Number(row["Moisture"])
+            );
+            this.Nitrogen_high = Math.max(
+              this.Nitrogen_high,
+              Number(row["Nitrogen"])
+            );
+            this.Potassium_high = Math.max(
+              this.Potassium_high,
+              Number(row["Potassium"])
+            );
+            this.Phosphorous_high = Math.max(
+              this.Phosphorous_high,
+              Number(row["Phosphorous"])
+            );
+          }
+        }
+
+        scaleDown(data) {
+          for (let i = 0; i < data.length; i++) {
+            let row = data[i];
+            data[i]["Temparature"] = this.devide(
+              row["Temparature"],
+              this.Temparature_high,
+              this.Temparature_low
+            );
+            data[i]["Humidity"] = this.devide(
+              row["Humidity"],
+              this.Humidity_high,
+              this.Humidity_low
+            );
+            data[i]["Moisture"] = this.devide(
+              row["Moisture"],
+              this.Moisture_high,
+              this.Moisture_low
+            );
+            data[i]["Nitrogen"] = this.devide(
+              row["Nitrogen"],
+              this.Nitrogen_high,
+              this.Nitrogen_low
+            );
+            data[i]["Potassium"] = this.devide(
+              row["Potassium"],
+              this.Potassium_high,
+              this.Potassium_low
+            );
+            data[i]["Phosphorous"] = this.devide(
+              row["Phosphorous"],
+              this.Phosphorous_high,
+              this.Phosphorous_low
+            );
+
+            // data[i][data[i]["Soil Type"]] = 1;
+            // data[i][data[i]["Crop Type"]] = 1;
+            data[i]["output"] = data[i]["Fertilizer Name"];
+            delete data[i]["Soil Type"];
+            delete data[i]["Crop Type"];
+            delete data[i]["Fertilizer Name"];
+
+            // just for trial
+            delete data[i]["Temparature"];
+            delete data[i]["Humidity"];
+            delete data[i]["Moisture"];
+          }
+          return data;
+        }
+
+        sliceArrayInHalf(arr) {
+          const middle = Math.floor(arr.length / 2);
+          const firstHalf = arr.slice(0, middle);
+          const secondHalf = arr.slice(middle);
+          return [firstHalf, secondHalf];
+        }
+
+        // training the neural net
+        trainNeuralNet() {
+          let trainingData = [];
+          for (let row in this.training_data) {
+            let output = this.training_data[row]["output"];
+            delete this.training_data[row]["output"];
+            trainingData.push({
+              input: this.training_data[row],
+              output: { [output]: 1 },
+            });
+          }
+          let result = this.net.train(trainingData);
+          // console.log(result)
+        }
+
+        testNeuralNet() {
+          let correct = 0;
+          let total = this.test_data.length;
+          for (let row in this.test_data) {
+            let output = this.test_data[row]["output"];
+            delete this.test_data[row]["output"];
+
+            let result = this.formatNetResult(
+              this.net.run(this.test_data[row])
+            );
+            if (result == output) {
+              correct++;
+            }
+          }
+          console.log(((correct / total) * 100).toFixed(0) + " %");
+        }
+
+        formatNetResult(data) {
+          let highestValue = 0;
+          let result = "";
+          for (let name in data) {
+            if (data[name] > highestValue) {
+              highestValue = data[name];
+              result = name;
+            }
+          }
+
+          return result;
+        }
+
+        analyze(data) {
+          data = this.scaleDown(data);
+          delete data[0]["output"];
+          let result = this.formatNetResult(this.net.run(data[0]));
+          return result;
+        }
+      }
+
+      let net = new FertilizerCalculator(JSON.parse(data));
+
+      $(function () {
+        $("body").on("submit", ".assistant", function (e) {
+          e.preventDefault();
+          let potassium = $("#potassium").val();
+          let phosphorous = $("#phosphorous").val();
+          let nitrogen = $("#nitrogen").val();
+
+          $("#result").html(
+            net.analyze([
+              {
+                Potassium: potassium,
+                Phosphorous: phosphorous,
+                Nitrogen: nitrogen,
+              },
+            ])
+          );
+        });
+      });
     </script>
-</body>
-
+  </body>
 </html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="css/style.css" rel="stylesheet" />
+
+    <style>
+      form {
+        width: 98%;
+        max-width: 600px;
+        margin: auto;
+      }
+
+      form :is(textarea, input) {
+        width: 100%;
+        outline: none;
+        padding: 8px;
+        border-radius: 5px;
+        border: solid, 25px rgba(0, 0, 0, 0.5);
+        margin: 15px auto;
+      }
+
+      form button {
+        border: none;
+        outline: none;
+        border-radius: 5px;
+        padding: 10px;
+        background: #09c;
+        color: #fff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <form action="?" method="post" class="assistant">
+      <textarea name="prompt" id="prompt" cols="30" rows="10"></textarea>
+      <button type="submit">Query</button>
+
+      <div class="ai_result"></div>
+    </form>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+      integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      $("body").on("submit", ".assistant", function (event) {
+        event.preventDefault();
+        let current_form = $(this);
+        let submit = current_form.find('[type="submit"]');
+
+        if (submit.val() === "Thinking...") return;
+        let textarea = $("#prompt");
+        let section_title_textarea = $("#section_title_textarea");
+
+        submit.html("Thinking...");
+        const promptText = textarea.val();
+        textarea.val("");
+
+        getCompletion(promptText + ". Format the text with apropriate markup.")
+          .then((data) => {
+            // Handle the API response data here
+            try {
+              submit.html("Query");
+              let text =
+                data["choices"] === undefined
+                  ? data["error"] === undefined
+                    ? data
+                    : data["error"]["message"]
+                  : data["choices"][0]["text"];
+              $(".ai_result").html(text);
+            } catch (error) {
+              console.log(error);
+            }
+          })
+          .catch((error) => {
+            // Handle any errors that occur during the request
+            submit.val("Generate");
+            reportStatus("Something is not right! Please try again.", "error");
+            console.error("Error:", error);
+          });
+
+        return false;
+      });
+
+      // this generates content with AI
+      function getCompletion(prompt) {
+        const AI_ASSISTANT_KEY =
+          "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";
+        const AI_ASSISTANT_MODEL = "text-davinci-003";
+        const apiUrl = "https://api.openai.com/v1/completions";
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", `Bearer ${AI_ASSISTANT_KEY}`);
+
+        const data = {
+          model: AI_ASSISTANT_MODEL,
+          prompt: prompt,
+          max_tokens: 4000,
+          temperature: 0,
+        };
+
+        return fetch(apiUrl, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // You can perform any processing or manipulation on the API response data here
+            return data;
+          })
+          .catch((error) => {
+            // Handle any errors that occur during the request
+            console.error("Error:", error);
+          });
+      }
+    </script>
+  </body>
+</html>
